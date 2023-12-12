@@ -18,6 +18,10 @@ function RegistrationScreen({ navigation }) {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const handleRegistration = () => {
+    if(!email | !password){
+      Alert.alert("Alert!", "Enter E-mail and password")
+    }
+    else{
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match', [
         { text: 'OK', onPress: () => console.log('OK Pressed') },
@@ -32,17 +36,20 @@ function RegistrationScreen({ navigation }) {
         })
         .catch(error => {
           if (error.code === 'auth/email-already-in-use') {
-            Alert.alert('That email address is already in use!');
+            Alert.alert('Alert','That email address is already in use!');
           }
 
           if (error.code === 'auth/invalid-email') {
-            Alert.alert('That email address is invalid!');
+            Alert.alert('Alert','That email address is invalid!');
+          }
+          if (error.code === 'auth/weak-password') {
+            Alert.alert('Alert','Password should be at least 6 characters');
           }
 
-          console.error(error);
         });
       
     }
+  }
   };
 
   return (

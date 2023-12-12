@@ -22,10 +22,21 @@ function LoginScreen({ navigation }) {
         else{
             auth()
         .signInWithEmailAndPassword(email,password)
-        Alert.alert('Success', 'Login successful', [
-            { text: 'OK',  },
-        ]);
+        .then(() => {
+            Alert.alert('Success', 'Login successful', [
+              { text: 'OK' },
+            ]);
+          })
+          .catch(error => {
+            if (error.code === 'auth/invalid-credential') {
+              Alert.alert('Alert!','Credential is incorrect');
+            }
+            if (error.code === 'auth/invalid-email') {
+                Alert.alert('Alert!','That email address is invalid!');
+              }
+          });
         }
+        
         
     };
 
