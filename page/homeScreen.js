@@ -1,15 +1,20 @@
-import React, { useState ,useEffect} from 'react';
+import React, { useState ,useEffect,useRef} from 'react';
 import {
   View,
   StyleSheet,
   TextInput,
   Button,
   Alert,
-  PermissionsAndroid
+  PermissionsAndroid,
+  Text
 } from 'react-native';
 import WelcomeMsg from '../components/welcom';
 import Geolocation from 'react-native-geolocation-service';
 import firestore from '@react-native-firebase/firestore';
+import auth from '@react-native-firebase/auth';
+
+const user = auth().currentUser;
+
 
 
 const requestLocationPermission = async () => {
@@ -46,20 +51,31 @@ function HomeScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState(false);
   const[buttonEnabled,setButton]=useState(true)
-
+  const isWithinAreaRef = useRef(false);
   
   var l = location ? location.coords.latitude : null
   var l2 = location ? location.coords.longitude : null
-  
+  const username = user.displayName || user.email; 
   
 
+  
   useEffect(() => {
     if (location) {
       const isWithinArea = l >= 25 && l <= 27 && l2 >= 78 && l2 <= 81;
-      setButton(isWithinArea);
-    }
-  }, [location]);
 
+      // Update the ref value without triggering re-renders
+      isWithinAreaRef.current = isWithinArea;
+
+      // You can perform other side effects here if needed
+    }
+  }, [location, l, l2]);
+
+  useEffect(() => {
+    // Update the state only if the ref value changes
+    if (isWithinAreaRef.current !== Button) {
+      setButton(isWithinAreaRef.current);
+    }
+  }, [isWithinAreaRef.current]);
 
   const result = requestLocationPermission();
   result.then(res => {
@@ -79,7 +95,7 @@ function HomeScreen({ navigation }) {
 
   function HandleSubmit(){
     console.log("hello")
-    firestore().collection('Users').add(
+    firestore().collection(username).add(
       {
         name: name,
         age: age,
@@ -96,6 +112,7 @@ function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <WelcomeMsg />
+      <Text>{username}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
