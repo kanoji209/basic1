@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import WelcomeMsg from '../components/welcom';
 import Geolocation from 'react-native-geolocation-service';
+import firestore from '@react-native-firebase/firestore';
 
 
 const requestLocationPermission = async () => {
@@ -50,7 +51,7 @@ function HomeScreen({ navigation }) {
   var l = location ? location.coords.latitude : null
   var l2 = location ? location.coords.longitude : null
   
-
+  
 
   useEffect(() => {
     if (location) {
@@ -76,18 +77,21 @@ function HomeScreen({ navigation }) {
     }
   });
 
-  const HandleSubmit = () => {
-    return (
-      Alert.alert(
-        'Form Details',
-        `Name: ${name}\nAge: ${age}\nGender: ${gender}\nPhone: ${phone}\nLocation: ${location ? location.coords.latitude : null} ${location ? location.coords.longitude : null}`,
-        [{ text: 'OK', onPress: () => console.log('OK Pressed') }],
-        { cancelable: false }
-      )
-
-    )
-
-  };
+  function HandleSubmit(){
+    console.log("hello")
+    firestore().collection('Users').add(
+      {
+        name: name,
+        age: age,
+        gender: gender,
+        phoneNumber: phone,
+        latitude: l,
+        longitude: l2,
+      }
+    ).then(() => {
+      Alert.alert('Successful','Mark Present')
+    });
+  }
 
   return (
     <View style={styles.container}>
