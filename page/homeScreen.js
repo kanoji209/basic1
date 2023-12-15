@@ -52,26 +52,41 @@ function HomeScreen({ navigation }) {
   const [location, setLocation] = useState(false);
   const[buttonEnabled,setButton]=useState(true)
   const isWithinAreaRef = useRef(false);
+  const [username, setUsername] = useState(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = auth().currentUser;
+        if (user) {
+          const userEmail = user.email;
+          setUsername(userEmail);
+        } else {
+          setUsername(null); // Set username to null if there's no authenticated user
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
+        setUsername(null);
+      }
+    };
+
+    fetchUserData();
+  }, []); 
   
   var l = location ? location.coords.latitude : null
   var l2 = location ? location.coords.longitude : null
-  const username = user.displayName || user.email; 
+  
   
 
   
   useEffect(() => {
     if (location) {
-      const isWithinArea = l >= 25 && l <= 27 && l2 >= 78 && l2 <= 81;
-
-      // Update the ref value without triggering re-renders
-      isWithinAreaRef.current = isWithinArea;
-
-      // You can perform other side effects here if needed
+      const isWithinArea = l >= 25 && l <= 27 && l2 >= 78 && l2 <= 82;
+      isWithinAreaRef.current = isWithinArea;      
     }
   }, [location, l, l2]);
 
   useEffect(() => {
-    // Update the state only if the ref value changes
     if (isWithinAreaRef.current !== Button) {
       setButton(isWithinAreaRef.current);
     }
@@ -88,7 +103,7 @@ function HomeScreen({ navigation }) {
           console.log(error.code, error.message);
           setLocation(false);
         },
-        { enableHighAccuracy: true, timeout: 1500, maximumAge: 2000 },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 20000 },
       );
     }
   });
@@ -112,7 +127,7 @@ function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <WelcomeMsg />
-      <Text>{username}</Text>
+      <Text style={{color:'black'}}>{[username,l,' ',l2]}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
@@ -171,6 +186,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 10,
+    color:'black'
   },
   phoneInputContainer: {
     flexDirection: 'row',

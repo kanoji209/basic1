@@ -4,7 +4,7 @@ import { View,Text } from "react-native";
 const WelcomeMsg=() =>{
     return(
         <View>
-            <Text style={{fontSize:50, textAlign:'center'}}>Welcome to the app!</Text>
+            <Text style={{fontSize:50, textAlign:'center',color:'black'}}>Welcome to the app!</Text>
         </View>
     )
 }
