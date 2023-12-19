@@ -6,6 +6,7 @@ import HomeScreen from './page/homeScreen';
 import LoginScreen from './page/loginScreen';
 import RegistrationScreen from './page/registerScreen';
 import { Button } from 'react-native';
+import Attendace from './page/viewAttendance';
 
 const Stack=createNativeStackNavigator();
 
@@ -67,6 +68,7 @@ const App = () => {
           color="green"
         />
       ),}}/>
+      <Stack.Screen name='Attendance' component={Attendace}/>
     </Stack.Navigator>
   );
 };
