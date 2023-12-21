@@ -5,7 +5,7 @@ import auth from '@react-native-firebase/auth';
 import HomeScreen from './page/homeScreen';
 import LoginScreen from './page/loginScreen';
 import RegistrationScreen from './page/registerScreen';
-import { Button } from 'react-native';
+import { Button, Image, View } from 'react-native';
 import Attendace from './page/viewAttendance';
 
 const Stack=createNativeStackNavigator();
@@ -14,15 +14,26 @@ const App = () => {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState();
 
-  // Handle user state changes
+
+
+//logo image function
+function logo(){
+  return(
+    <Image source={require('./assets/logo.png')} style={{width:150, height:15}}/>
+  )
+}
+// Handle user state changes
   function onAuthStateChanged(user){
     setUser(user);
     if(initializing) setInitializing(false);
   }
 
+// logout function  
   function logOut(){
     auth().signOut()
   }
+
+
   useEffect(() => {
     const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
     return subscriber; // unsubscribe on unmount
@@ -32,17 +43,22 @@ const App = () => {
 
   if (!user) {
     return (
-      <Stack.Navigator initialRouteName="Login" screenOptions={{
-        headerShadowVisible:true,
-        headerTintColor:'white',
-        headerStyle:{
-          backgroundColor:'green'
-        },
-        headerTitleStyle: {
-          fontWeight: 'bold',
-        },
-      }}>
-        <Stack.Screen name="Login" component={LoginScreen}/>
+      <Stack.Navigator initialRouteName="Login" 
+      // screenOptions={{
+      //   headerShadowVisible:true,
+      //   headerTintColor:'white',
+      //   // headerStyle:{
+      //   //   backgroundColor:'green'
+      //   // },
+      //   headerTitleStyle: {
+      //     fontWeight: 'bold',
+      //   },
+      // }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} options={{
+          headerTransparent:true,
+          title:''
+        }}/>
         <Stack.Screen name='Sign Up' component={RegistrationScreen}/>
       </Stack.Navigator>
     );
@@ -53,19 +69,24 @@ const App = () => {
       headerShadowVisible:true,
       headerTintColor:'white',
       headerStyle:{
-        backgroundColor:'green'
+        backgroundColor:'#633087'
       },
       headerTitleStyle: {
         fontWeight: 'bold',
       },
     }}>
       <Stack.Screen name="Home" component={HomeScreen} 
-      options={{title: 'My home',
+      options={{headerTitle:() =>(
+        <View style={{width:150, height:50,backgroundColor:'white',}}>
+          <Image source={require('./assets/download.jpg')} style={{width:150,height:40, marginTop:7}} />
+        </View>
+        
+      ),
       headerRight: () => (
         <Button
           onPress={logOut}
           title="Log Out"
-          color="green"
+          color="#633087"
         />
       ),}}/>
       <Stack.Screen name='Attendance' component={Attendace}/>

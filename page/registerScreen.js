@@ -75,7 +75,7 @@ function RegistrationScreen({ navigation }) {
           secureTextEntry={secureTextEntry}
         />
         <View style={{ flex: 1, height: 40, }}>
-          <Button color={'green'} title={secureTextEntry ? 'Show' : 'Hide'}
+          <Button color={'#633087'} title={secureTextEntry ? 'Show' : 'Hide'}
             onPress={() => setSecureTextEntry(!secureTextEntry)} />
         </View>
       </View>
@@ -86,7 +86,7 @@ function RegistrationScreen({ navigation }) {
         value={confirmPassword}
         secureTextEntry
       />
-      <Button color='green' title='Sign Up' onPress={handleRegistration} />
+      <Button color='#633087' title='Sign Up' onPress={handleRegistration} />
     </View>
   );
 };
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: 'green',
+    borderColor: '#633087',
     borderRadius: 5,
     padding: 10,
     marginBottom: 20,

@@ -1,17 +1,11 @@
-import React, { useState ,useEffect,useRef} from 'react';
-import {
-  View,
-  StyleSheet,
-  TextInput,
-  Button,
-  Alert,
-  PermissionsAndroid,
-  Text
-} from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, TextInput, Button, Alert, PermissionsAndroid, Text, ScrollView } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import moment from 'moment';
+import {formatDuration, differenceInSeconds, intervalToDuration, format} from 'date-fns'
+
 
 //  Function for getting location permission
 const requestLocationPermission = async () => {
@@ -41,92 +35,87 @@ const requestLocationPermission = async () => {
 
 
 
-
-function HomeScreen({ navigation }) {
+const HomeScreen = ({ navigation }) => {
   const [currentDate, setCurrentDate] = useState('');
-  const [currentTime,setCurrentTime]= useState('');
+  const [currentTime, setCurrentTime] = useState('');
   const [name, setName] = useState('');
-  const [gender,setGender] = useState('');
+  const [gender, setGender] = useState('');
   const [post, setPost] = useState('');
   const [dob, setDob] = useState('');
   const [location, setLocation] = useState(false);
-  const[buttonEnabled,setButton]=useState(true)
-  const isWithinAreaRef = useRef(false);
+  const [buttonText, setButtonText] = useState('Punch In');
   const [username, setUsername] = useState(null);
+  const isWithinAreaRef = useRef(false);
+  const[buttonEnabled,setButton]=useState(true)
+  const [punchInTime, setPunchInTime] = useState(null);
+  const [punchOutTime, setPunchOutTime] = useState(null);
+  const [duration, setDuration ] = useState(null);
 
-  var l = location ? location.coords.latitude : null
-  var l2 = location ? location.coords.longitude : null
+  var l = location ? location.coords.latitude : null;
+  var l2 = location ? location.coords.longitude : null;
 
-  
-// To fetch current user email login
-useEffect(() => {
-  const fetchUserData = async () => {
-    try {
-      const user = auth().currentUser;
-      if (user) {
-        const userEmail = user.email;
-        setUsername(userEmail);
-      } else {
+  // To fetch current user email login
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const user = auth().currentUser;
+        if (user) {
+          const userEmail = user.email;
+          setUsername(userEmail);
+        } else {
+          setUsername(null);
+        }
+      } catch (error) {
+        console.error('Error fetching user data:', error);
         setUsername(null);
       }
-    } catch (error) {
-      console.error('Error fetching user data:', error);
-      setUsername(null);
-    }
-  };
+    };
 
-  fetchUserData();
-}, []);
+    fetchUserData();
+  }, []);
 
-// Fetch user personal details
-useEffect(() => {
-  const fetchName = async () => {
-    try {
-      if (username) {
-        const userDoc = await firestore().collection(username).doc("Personal Detail").get();
+  // Fetch user personal details
+  useEffect(() => {
+    const fetchName = async () => {
+      try {
+        if (username) {
+          const userDoc = await firestore().collection(username).doc('Personal Detail').get();
 
-
-        if (!userDoc.exists) {
-          console.log('No such document!');
-        } else {
-          console.log('Document data:', userDoc.data());
-          setName(userDoc.data().Name);
-          setGender(userDoc.data().Gender);
-          setPost(userDoc.data().Post);
-          setDob(userDoc.data().DoB)
+          if (!userDoc.exists) {
+            console.log('No such document!');
+          } else {
+            console.log('Document data:', userDoc.data());
+            setName(userDoc.data().Name);
+            setGender(userDoc.data().Gender);
+            setPost(userDoc.data().Post);
+            setDob(userDoc.data().DoB);
+          }
         }
+      } catch (error) {
+        console.log('Error getting document:', error);
       }
-    } catch (error) {
-      console.log('Error getting document:', error);
-    }
-  };
+    };
 
-  fetchName();
-}, [username]);
+    fetchName();
+  }, [username]);
 
-// Date and time
+  // Date and time
   useEffect(() => {
     const updateDateTime = () => {
-      const date = moment()
-        .format(' DD-MM-YYYY');
-      const time = moment()
-        .utcOffset('+05:30')
-        .format(' hh:mm:ss a');
+      const date = moment().format('DD-MM-YYYY');
+      const time = moment().utcOffset('+05:30').format('hh:mm:ss a');
       setCurrentDate(date);
       setCurrentTime(time);
     };
 
-    //Update the date-time every second (adjust the interval as needed)
+    // Update the date-time every second (adjust the interval as needed)
     const intervalId = setInterval(updateDateTime, 1000);
 
     // Clean up the interval on component unmount
     return () => clearInterval(intervalId);
-    
   }, []);
 
-  
-
-// After getting location permission fetching current location of the user
+  // After getting location permission fetching current location of the user
   const result = requestLocationPermission();
   result.then(res => {
     if (res) {
@@ -143,17 +132,15 @@ useEffect(() => {
     }
   });
 
-
-// Checking user is at location or not
+  // Checking user is at location or not
   useEffect(() => {
     if (location) {
       const isWithinArea = l >= 25 && l <= 27 && l2 >= 78 && l2 <= 82;
-      isWithinAreaRef.current = isWithinArea;      
+      isWithinAreaRef.current = isWithinArea;
     }
   }, [location, l, l2]);
 
-
-// Set button enable or disable
+  // Set button enable or disable
   useEffect(() => {
     if (isWithinAreaRef.current !== Button) {
       setButton(isWithinAreaRef.current);
@@ -162,52 +149,86 @@ useEffect(() => {
 
 
 
-//Actions of on clicking check in button 
-  function HandleCheckIn(){
-    console.log("hello")
-    firestore().collection(username).doc(currentDate).set(
-      {
-        date:currentDate,
+  // Action of clicking the button
+  const handleButtonClick = () => {
+    if (buttonText === 'Punch In') {
+      handleCheckIn();
+    } else {
+      handleCheckOut();
+    }
+  };
+
+  // Actions of on clicking check in button
+  const handleCheckIn = () => {
+    
+    setPunchInTime(new Date());
+    console.log('Punch In',{punchOutTime});
+    firestore()
+      .collection(username)
+      .doc(currentDate)
+      .set({
+        date: currentDate,
         checkIn: currentTime,
         attendance: 'Present',
-        checkOut:''
-      }
-    ).then(() => {
-      Alert.alert('Successful','Mark Present')
-    });
-    
-  }
+        checkOut: '',
+      })
+      .then(() => {
+        Alert.alert('Successful', 'Mark Present:  ');
+      });
+      setButtonText('Punch Out')
+  };
 
-//Action of co clicking checkout button
-function HandleCheckOut(){
-  console.log("hello")
-  firestore().collection(username).doc(currentDate).update(
-    {
-      checkOut: currentTime,
-    }
-  ).then(() => {
-    Alert.alert('Successful','Check Out')
-  });
-  
-}
+  // Action of on clicking checkout button
+  const handleCheckOut = () => {
+    setPunchOutTime(new Date());
+    console.log('Punch In',{punchInTime});
+
+    firestore()
+      .collection(username)
+      .doc(currentDate)
+      .update({
+        checkOut: currentTime,
+      })
+      // .then(() => {
+      //   Alert.alert('Successful', 'Punch Out');
+      // });
+      setButtonText('Punch In')
+  };
+
+
+// Calculate the time difference between punch in and punch out  
+  useEffect(()=>{
+          if (punchInTime && punchOutTime) {
+            const d=intervalToDuration({start:punchInTime,end:punchOutTime})
+            const formatted = formatDuration(d, { format: ["hours", "minutes", "seconds"] });
+            setDuration(d)
+          
+            Alert.alert('Total Work Time', `Total Time between Punch In and Punch Out: ${formatted} `);
+          } 
+          // else {
+          //   // Handle the case when punch in time is not recorded
+          //   Alert.alert('Error', 'Punch In time not recorded');
+          // }
+  }, [punchOutTime] );
 
   return (
     <View style={styles.container}>
-      
-      <Text style={{fontSize:40, textAlign:'center',color:'black'}}>Welcome to the Insyst Lab {[name]}</Text>
-      <Text>{[currentDate,currentTime]}</Text>
+      <ScrollView>
+        <Text style={{ fontSize: 40, textAlign: 'center', color: 'black' }}>
+        Welcome to the Insyst Lab {[name]}
+      </Text>
+      <Text>{[currentDate]} {currentTime}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
           editable={false}
           value={name}
-          // onChangeText={text => setName(text)}
           style={styles.inputField}
         />
         <TextInput
           placeholder="Age"
           value={post}
-          onChangeText={text => setAge(text)}
+          onChangeText={text => setPost(text)}
           style={styles.inputField}
         />
         <TextInput
@@ -216,7 +237,7 @@ function HandleCheckOut(){
           onChangeText={text => setGender(text)}
           style={styles.inputField}
         />
-        <View >
+        <View>
           <TextInput
             placeholder="Dob"
             value={dob}
@@ -225,11 +246,22 @@ function HandleCheckOut(){
           />
         </View>
       </View>
-      <View style={{flexDirection:'row', justifyContent:"space-evenly",marginBottom:10}}>
-      <Button color={'green'} title="Check In" onPress={HandleCheckIn} disabled={!buttonEnabled} />
-      <Button color={'green'} title="Check Out" onPress={HandleCheckOut} disabled={!buttonEnabled} />
+      <View style={{marginBottom:10}}>
+        <Button
+        color={'#633087'}
+        title={buttonText}
+        onPress={handleButtonClick}
+        disabled={!buttonEnabled}
+      />
       </View>
-      <Button color={'green'} title="View Attandance" onPress={()=>navigation.navigate('Attendance')}  />
+      
+      <Button
+        color={'#633087'}
+        title="View Attendance"
+        onPress={() => navigation.navigate('Attendance')}
+      />
+      </ScrollView>
+      
     </View>
   );
 };
@@ -248,28 +280,20 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     textAlignVertical: 'center',
-    backgroundColor: 'green',
+    backgroundColor: '#633087',
   },
   inputContainer: {
     marginTop: 20,
   },
   inputField: {
     height: 40,
-    borderColor: 'green',
+    borderColor: '#633087',
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 10,
-    color:'black'
+    color: 'black',
   },
-  phoneInputContainer: {
-    flexDirection: 'row',
-
-  },
-  showHideButton: {
-    height: 50,
-    marginBottom: 10,
-    flex: 1
-  },
+ 
 });
 
-export default HomeScreen
+export default HomeScreen;

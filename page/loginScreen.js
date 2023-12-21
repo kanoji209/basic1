@@ -6,6 +6,7 @@ import {
     TextInput,
     Alert,
     Button,
+    Image,
 } from 'react-native';
 import auth from "@react-native-firebase/auth";
 
@@ -42,7 +43,8 @@ function LoginScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <Text style={styles.header}>Login</Text>
+            <Image style={{marginBottom:100}} source={require('../assets/download.jpg')}/>
+            
             <TextInput
                 style={styles.input}
                 placeholder="Email"
@@ -58,17 +60,17 @@ function LoginScreen({ navigation }) {
                     secureTextEntry={secureTextEntry}
                 />
                 <View style={{flex:1,height:40,}}>
-                <Button color={'green'}title={secureTextEntry ? 'Show' : 'Hide'}
+                <Button color={'#633087'}title={secureTextEntry ? 'Show' : 'Hide'}
                     onPress={() => setSecureTextEntry(!secureTextEntry)} />
                 </View>
             </View>
 
             <View style={{ flexDirection: 'row' }}>
                 <View style={{ paddingRight: 10 }}>
-                    <Button color={'green'} title={'Log In'} onPress={handleLogin} />
+                    <Button color={'#633087'} title={'Log In'} onPress={handleLogin} />
                 </View>
 
-                <Button color={'green'} title={'Sign Up'} onPress={() => navigation.navigate('Sign Up')} />
+                <Button color={'#633087'} title={'Sign Up'} onPress={() => navigation.navigate('Sign Up')} />
             </View>
 
         </View>
@@ -89,11 +91,11 @@ const styles = StyleSheet.create({
     },
     input: {
         borderWidth: 1,
-        borderColor: 'green',
+        borderColor: '#633087',
         borderRadius: 5,
         padding: 10,
         marginBottom: 20,
-        width: 390,
+        width: 350,
         color:'black'
     },
 });
