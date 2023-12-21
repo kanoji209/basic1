@@ -73,18 +73,20 @@ useEffect(()=>{
 
     return(
         <><View style={{flexDirection:'row',paddingTop:10,paddingBottom:10,backgroundColor:'#7F47A6' }}>
-            <Text style={[styles.headerText,{flex:2,marginLeft:30}]}>Date</Text>
+            <Text style={[styles.headerText,{flex:1,marginLeft:20}]}>Date</Text>
             <Text style={[styles.headerText,{flex:2}]}>Punch In</Text>
             <Text style={[styles.headerText,{flex:2}]}>Punch Out</Text>
+            <Text style={[styles.headerText,{flex:2}]}>Work Hours</Text>
             <Text style={[styles.headerText,{flex:1,marginRight:10}]}>Status</Text>
             </View>
             <FlatList
             data={users}
             renderItem={({ item }) => (
                 <View style={{ height: 30, flex:1,flexDirection:'row',alignItems: 'center', justifyContent:"space-around", backgroundColor:'#C3A4D9', marginBottom:10,fontSize:15}}>
-                    <Text>{item.date}</Text>
+                    <Text style={{borderWidth:1}}>{item.date}</Text>
                     <Text>{item.checkIn}</Text>
                     <Text>{item.checkOut}</Text>
+                    <Text>{item.workHour}</Text>
                     <Text>{item.attendance}</Text>
                 </View>
             )} />

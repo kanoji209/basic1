@@ -36,8 +36,6 @@ const requestLocationPermission = async () => {
 
 
 const HomeScreen = ({ navigation }) => {
-  const [currentDate, setCurrentDate] = useState('');
-  const [currentTime, setCurrentTime] = useState('');
   const [name, setName] = useState('');
   const [gender, setGender] = useState('');
   const [post, setPost] = useState('');
@@ -49,7 +47,6 @@ const HomeScreen = ({ navigation }) => {
   const[buttonEnabled,setButton]=useState(true)
   const [punchInTime, setPunchInTime] = useState(null);
   const [punchOutTime, setPunchOutTime] = useState(null);
-  const [duration, setDuration ] = useState(null);
 
   var l = location ? location.coords.latitude : null;
   var l2 = location ? location.coords.longitude : null;
@@ -100,21 +97,9 @@ const HomeScreen = ({ navigation }) => {
   }, [username]);
 
   // Date and time
-  useEffect(() => {
-    const updateDateTime = () => {
-      const date = moment().format('DD-MM-YYYY');
-      const time = moment().utcOffset('+05:30').format('hh:mm:ss a');
-      setCurrentDate(date);
-      setCurrentTime(time);
-    };
-
-    // Update the date-time every second (adjust the interval as needed)
-    const intervalId = setInterval(updateDateTime, 1000);
-
-    // Clean up the interval on component unmount
-    return () => clearInterval(intervalId);
-  }, []);
-
+  const currentDate=format(new Date(), 'dd-MM-u');
+  const currentTime=format(new Date(), 'hh:mm bbb');
+  
   // After getting location permission fetching current location of the user
   const result = requestLocationPermission();
   result.then(res => {
@@ -170,6 +155,7 @@ const HomeScreen = ({ navigation }) => {
         date: currentDate,
         checkIn: currentTime,
         attendance: 'Present',
+        workHour:'',
         checkOut: '',
       })
       .then(() => {
@@ -181,14 +167,8 @@ const HomeScreen = ({ navigation }) => {
   // Action of on clicking checkout button
   const handleCheckOut = () => {
     setPunchOutTime(new Date());
-    console.log('Punch In',{punchInTime});
 
-    firestore()
-      .collection(username)
-      .doc(currentDate)
-      .update({
-        checkOut: currentTime,
-      })
+    
       // .then(() => {
       //   Alert.alert('Successful', 'Punch Out');
       // });
@@ -200,8 +180,15 @@ const HomeScreen = ({ navigation }) => {
   useEffect(()=>{
           if (punchInTime && punchOutTime) {
             const d=intervalToDuration({start:punchInTime,end:punchOutTime})
-            const formatted = formatDuration(d, { format: ["hours", "minutes", "seconds"] });
-            setDuration(d)
+            const formatted = formatDuration(d, { format: ["hours", "minutes"] });
+
+            firestore()
+      .collection(username)
+      .doc(currentDate)
+      .update({
+        checkOut: currentTime,
+        workHour:formatted,
+      })
           
             Alert.alert('Total Work Time', `Total Time between Punch In and Punch Out: ${formatted} `);
           } 
@@ -217,7 +204,7 @@ const HomeScreen = ({ navigation }) => {
         <Text style={{ fontSize: 40, textAlign: 'center', color: 'black' }}>
         Welcome to the Insyst Lab {[name]}
       </Text>
-      <Text>{[currentDate]} {currentTime}</Text>
+      <Text>{currentDate}</Text>
       <View style={styles.inputContainer}>
         <TextInput
           placeholder="Name"
